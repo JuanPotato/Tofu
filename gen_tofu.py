@@ -68,7 +68,7 @@ def main():
     progressbar.streams.wrap_stderr()
     bar = progressbar.ProgressBar()
     font = fontforge.font() # create a new font
-    # font.name = 'Tofu'
+    font.familyname = 'Tofu'
 
     for i in bar(irange(start, end)):
         codepoint = hex(i)[2:].upper()
