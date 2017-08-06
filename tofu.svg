@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35" width="250">
+    <path fill="#000" id="0" d="M1,6  v5 h3 v-5 z  m1,1 h1 v3 h-1 z"/>
+    <path fill="#000" id="1" d="M5,6  v1 h1 v3 h-1 v1 h3 v-1 h-1 v-4 z"/>
+    <path fill="#000" id="2" d="M9,6  v1 h2 v1 h-2 v3 h3 v-1 h-2 v-1 h2 v-3 z"/>
+    <path fill="#000" id="3" d="M13,6 v1 h2 v1 h-2 v1 h2 v1 h-2 v1 h3 v-5 z"/>
+  
+    <path fill="#000" id="4" d="M1,12  v3 h2 v2 h1 v-5 h-1 v2 h-1 v-2 z"/>
+    <path fill="#000" id="5" d="M5,12  v3 h2 v1 h-2 v1 h3 v-3 h-2 v-1 h2 v-1 z"/>
+    <path fill="#000" id="6" d="M9,12  v5 h3 v-3 h-2 v-1 h2 v-1 z  m1,3 h1 v1 h-1 z"/>
+    <path fill="#000" id="7" d="M13,12 v1 h2 v4 h1 v-5 z"/>
+  
+    <path fill="#000" id="8" d="M1,18  v5 h3 v-5 z  m1,1 h1 v1 h-1 z  m0,2 h1 v1 h-1 z"/>
+    <path fill="#000" id="9" d="M5,18  v3 h2 v2 h1 v-5 z  m1,1 h1 v1 h-1 z"/>
+    <path fill="#000" id="A" d="M9,18  v5 h1 v-2 h1 v2 h1 v-5 z  m1,1 h1 v1 h-1 z"/>
+    <path fill="#000" id="B" d="M13,18 v5 h3 v-2 h-1 v1 h-1 v-1 h1 v-1 h-1 v-1 h1 v1 h1 v-2 z"/>
+  
+    <path fill="#000" id="C" d="M1,24  v5 h3 v-1 h-2 v-3 h2 v-1 z"/>
+    <path fill="#000" id="D" d="M5,24  v5 h2 v-1 h1 v-3 h-1 v3  h-1 v-3 h1 v-1 z"/>
+    <path fill="#000" id="E" d="M9,24  v5 h3 v-1 h-2 v-1 h2 v-1 h-2 v-1 h2 v-1 z"/>
+    <path fill="#000" id="F" d="M13,24 v5 h1 v-2 h2 v-1 h-2 v-1 h2 v-1 z"/>
+  
+  
+    <path fill="#000" id="box1" d="M19,1 v15 h15 v-15 z  m1,1 h13 v13 h-13 z"/>
+    <path fill="#000" id="box1_0" d="M21,3  v5 h3 v-5 z  m1,1 h1 v3 h-1 z"/>
+    <path fill="#000" id="box1_1" d="M25,3  v1 h1 v3 h-1 v1 h3 v-1 h-1 v-4 z"/>
+    <path fill="#000" id="box1_2" d="M29,3  v1 h2 v1 h-2 v3 h3 v-1 h-2 v-1 h2 v-3 z"/>
+    <path fill="#000" id="box1_3" d="M21,9 v1 h2 v1 h-2 v1 h2 v1 h-2 v1 h3 v-5 z"/>
+    <path fill="#000" id="box1_4" d="M25,9  v3 h2 v2 h1 v-5 h-1 v2 h-1 v-2 z"/>
+    <path fill="#000" id="box1_5" d="M29,9  v3 h2 v1 h-2 v1 h3 v-3 h-2 v-1 h2 v-1 z"/>
+  
+    <path fill="#000" id="box2" d="M19,19 v15 h15 v-15 z  m1,1 h13 v13 h-13 z"/>
+    <path fill="#000" id="box1_0" d="M23,21  v5 h3 v-5 z  m1,1 h1 v3 h-1 z"/>
+    <path fill="#000" id="box1_1" d="M27,21  v1 h1 v3 h-1 v1 h3 v-1 h-1 v-4 z"/>
+    <path fill="#000" id="box1_2" d="M23,27  v1 h2 v1 h-2 v3 h3 v-1 h-2 v-1 h2 v-3 z"/>
+    <path fill="#000" id="box1_3" d="M27,27 v1 h2 v1 h-2 v1 h2 v1 h-2 v1 h3 v-5 z"/>
+</svg>
