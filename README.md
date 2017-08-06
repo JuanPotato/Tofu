@@ -11,10 +11,10 @@ Because I wanted zero width characters in my code to be not zero width. I was tr
  * Fontforge python lib is sometimes screwy. Find better library
 
 ### This is stupid
-Yeah probably, but for its very specific use case its not terribly bad.
+Yeah probably, but for its very specific use case it's not terribly bad.
 
 ### Generating a font
-**WARNING**: PLEASE DO NOT RUN THIS CODE ON A HARD DRIVE, IM NOT SURE HOW LONG IT WOULD TAKE. I USED A RAM DISK
+**WARNING**: PLEASE DO NOT RUN THIS CODE ON A HARD DRIVE, I'M NOT SURE HOW LONG IT WOULD TAKE. I USED A RAM DISK
 
 The syntax for the program is as follows. `gen_tofu.py 0000 FFFD -o`
 `0000` is the start
