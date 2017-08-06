@@ -4,8 +4,6 @@ import fontforge
 import progressbar
 import argparse
 
-# 🥔
-
 def irange(start, end=None):
     if end is None:
         return range(start+1)

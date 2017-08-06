@@ -16,6 +16,8 @@ Yeah probably, but for its very specific use case it's not terribly bad.
 ### Generating a font
 **WARNING**: PLEASE DO NOT RUN THIS CODE ON A HARD DRIVE, I'M NOT SURE HOW LONG IT WOULD TAKE. I USED A RAM DISK
 
+I used python3 for this, it may work in python2. If it does not please feel free to make a pull request to fix it but I am not actively supporting python2.
+
 The syntax for the program is as follows. `gen_tofu.py 0000 FFFD -o`
 `0000` is the start
 `FFFD` is the end
