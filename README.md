@@ -16,7 +16,7 @@ Because I wanted zero width characters in my code to be not zero width. I was tr
 Yeah probably, but for its very specific use case it's not terribly bad.
 
 ### Generating a font
-**WARNING**: PLEASE DO NOT RUN THIS CODE ON A HARD DRIVE, I'M NOT SURE HOW LONG IT WOULD TAKE. I USED A RAM DISK
+Caching should take care of the intensive IO issue, if not then use a ramdisk.
 
 I used python3 for this, it may work in python2. If it does not please feel free to make a pull request to fix it but I am not actively supporting python2.
 

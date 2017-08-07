@@ -11,6 +11,8 @@ def irange(start, end=None):
         return range(start, end+1)
 
 def main():
+    MAGIC_PADDING = 1/94 * 1000
+
     parser = argparse.ArgumentParser(description='Generate Tofu font.')
 
     parser.add_argument('start', metavar='Start', type=str, nargs=1,
@@ -35,20 +37,17 @@ def main():
         print("End argument must be 4 or 5 characters long. Ex. 0000 or 10000.")
         exit(2)
 
-    hex_chars = '0123456789ABCDEF'
-
-    if any(c not in hex_chars for c in start_str):
+    try:
+        start = int(start_str, 16)
+    except ValueError:
         print("Start argument must only contain hexadecimal characters.")
         exit(2)
 
-    if any(c not in hex_chars for c in end_str):
+    try:
+        end = int(end_str, 16)
+    except ValueError:
         print("End argument must only contain hexadecimal characters.")
         exit(2)
-    
-    print("Generating Tofu for unicode characters between U+{} and U+{}".format(start_str, end_str))
-
-    start = int(start_str, 16)
-    end = int(end_str, 16)
 
     if start >= end:
         print("Start must be less than end")
@@ -64,11 +63,19 @@ def main():
         exit(2)
 
 
+    print("Generating Tofu for unicode characters between U+{} and U+{}".format(start_str, end_str))
+
+
     # return
     progressbar.streams.wrap_stderr()
     bar = progressbar.ProgressBar()
     font = fontforge.font() # create a new font
     font.familyname = 'Tofu'
+    font.fontname = 'Tofu'
+    font.fullname = 'Tofu {} - {}'.format(start_str, end_str)
+    font.comment = 'The complete opposite of a font'
+    font.version = '0.1'
+    font.copyright = open('FONT_LICENSE', 'r').read()
 
     for i in bar(irange(start, end)):
         codepoint = hex(i)[2:].upper()
@@ -76,33 +83,33 @@ def main():
 
         char = font.createChar(i)
         char.importOutlines(save_svg(i))
-        char.width = 1000
-        char.left_side_bearing = 58.8232421875 # to ensure zero width characters are not
-        char.right_side_bearing = 58.8232421875
+        char.width = 1000 # shouldnt _have_ to do this, but you never know
+        char.left_side_bearing = MAGIC_PADDING # to ensure zero width characters are not
+        char.right_side_bearing = MAGIC_PADDING
 
     save_name = 'tofu_{}_{}.{}'.format(start_str, end_str, 'otf' if args.otf else 'ttf')
     print("Saving as {}".format(save_name))
     font.generate(save_name)
 
 
-char_template = '<path fill="#000" d="{}"/>'
+char_template = '<path d="{}"/>'
 chars_d = { # these are all paths to make the character associated. I made them
-    '0': 'v5h3v-5zm1,1h1v3h-1z',
-    '1': 'v1h1v3h-1v1h3v-1h-1v-4z',
-    '2': 'v1h2v1h-2v3h3v-1h-2v-1h2v-3z',
-    '3': 'v1h2v1h-2v1h2v1h-2v1h3v-5z',
-    '4': 'v3h2v2h1v-5h-1v2h-1v-2z',
-    '5': 'v3h2v1h-2v1h3v-3h-2v-1h2v-1z',
-    '6': 'v5h3v-3h-2v-1h2v-1zm1,3h1v1h-1z',
-    '7': 'v1h2v4h1v-5z',
-    '8': 'v5h3v-5zm1,1h1v1h-1zm0,2h1v1h-1z',
-    '9': 'v3h2v2h1v-5zm1,1h1v1h-1z',
-    'A': 'v5h1v-2h1v2h1v-5zm1,1h1v1h-1z',
-    'B': 'v5h3v-2h-1v1h-1v-1h1v-1h-1v-1h1v1h1v-2z',
-    'C': 'v5h3v-1h-2v-3h2v-1z',
-    'D': 'v5h2v-1h1v-3h-1v3h-1v-3h1v-1z',
-    'E': 'v5h3v-1h-2v-1h2v-1h-2v-1h2v-1z',
-    'F': 'v5h1v-2h2v-1h-2v-1h2v-1z',
+    "0":"v40h24v-40zm8,8h8v24h-8z",
+    "1":"v8h8v24h-8v8h24v-8h-8v-32z",
+    "2":"v8h16v8h-16v24h24v-8h-16v-8h16v-24z",
+    "3":"v8h16v8h-16v8h16v8h-16v8h24v-40z",
+    "4":"v24h16v16h8v-40h-8v16h-8v-16z",
+    "5":"v24h16v8h-16v8h24v-24h-16v-8h16v-8z",
+    "6":"v40h24v-24h-16v-8h16v-8zm8,24h8v8h-8z",
+    "7":"v8h16v32h8v-40z",
+    "8":"v40h24v-40zm8,8h8v8h-8zm0,16h8v8h-8z",
+    "9":"v24h16v16h8v-40zm8,8h8v8h-8z",
+    "A":"v40h8v-16h8v16h8v-40zm8,8h8v8h-8z",
+    "B":"v40h24v-16h-8v8h-8v-8h8v-8h-8v-8h8v8h8v-16z",
+    "C":"v40h24v-8h-16v-24h16v-8z",
+    "D":"v40h16v-8h8v-24h-8v24h-8v-24h8v-8z",
+    "E":"v40h24v-8h-16v-8h16v-8h-16v-8h16v-8z",
+    "F":"v40h8v-16h16v-8h-16v-8h16v-8z",
 }
 
 def save_svg(char):
@@ -116,16 +123,16 @@ def gen_svg(char):
     if not isinstance(char, int):
         char = ord(char)
 
-    svg = '''<svg viewBox="0 0 17 17"><path fill="#000" d="M1,1v15h15v-15zm1,1h13v13h-13z"/>'''
+    svg = '''<svg viewBox="0 0 94 94" fill="#000"><path d="M1,1v92h92v-92zm1,1h90v90h-90z"/>'''
     
     codepoint = hex(char)[2:].upper()
     codepoint = codepoint.zfill(6 if len(codepoint) > 4 else 4)
     
     for i,c in enumerate(codepoint):
         if len(codepoint) is 4:
-            start = 'M{},{}'.format(5 + (4 * (i % 2)), 3 + 6 * (i // 2))
+            start = 'M{},{}'.format(19 + (32 * (i % 2)), 3 + 48 * (i // 2))
         else:
-            start = 'M{},{}'.format(3 + (4 * (i % 3)), 3 + 6 * (i // 3))
+            start = 'M{},{}'.format(3 + (32 * (i % 3)), 3 + 48 * (i // 3))
 
         svg += char_template.format(start + chars_d[c]);
         
