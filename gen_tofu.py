@@ -3,6 +3,32 @@
 import fontforge
 import progressbar
 import argparse
+import psMat as matrix
+
+glyph_templates = { # these are all paths to make the character associated. I made them
+    "base": "M1,1v92h92v-92zm1,1h90v90h-90z",
+    "0":"v40h24v-40zm8,8h8v24h-8z",
+    "1":"v8h8v24h-8v8h24v-8h-8v-32z",
+    "2":"v8h16v8h-16v24h24v-8h-16v-8h16v-24z",
+    "3":"v8h16v8h-16v8h16v8h-16v8h24v-40z",
+    "4":"v24h16v16h8v-40h-8v16h-8v-16z",
+    "5":"v24h16v8h-16v8h24v-24h-16v-8h16v-8z",
+    "6":"v40h24v-24h-16v-8h16v-8zm8,24h8v8h-8z",
+    "7":"v8h16v32h8v-40z",
+    "8":"v40h24v-40zm8,8h8v8h-8zm0,16h8v8h-8z",
+    "9":"v24h16v16h8v-40zm8,8h8v8h-8z",
+    "A":"v40h8v-16h8v16h8v-40zm8,8h8v8h-8z",
+    "B":"v40h24v-16h-8v8h-8v-8h8v-8h-8v-8h8v8h8v-16z",
+    "C":"v40h24v-8h-16v-24h16v-8z",
+    "D":"v40h16v-8h8v-24h-8v24h-8v-24h8v-8z",
+    "E":"v40h24v-8h-16v-8h16v-8h-16v-8h16v-8z",
+    "F":"v40h8v-16h16v-8h-16v-8h16v-8z",
+}
+
+GLYPH_TEMPLATE_SIZE = 94
+GLYPH_SIZE = 1000
+SCALE_FACTOR = GLYPH_SIZE / GLYPH_TEMPLATE_SIZE
+TEMP_FILE = 'tmp.svg'
 
 def irange(start, end=None):
     if end is None:
@@ -10,9 +36,8 @@ def irange(start, end=None):
     else:
         return range(start, end+1)
 
-def main():
-    MAGIC_PADDING = 1/94 * 1000
 
+def main():
     parser = argparse.ArgumentParser(description='Generate Tofu font.')
 
     parser.add_argument('start', metavar='Start', type=str, nargs=1,
@@ -53,8 +78,8 @@ def main():
         print("Start must be less than end")
         exit(2)
 
-    if (end - start + (2 if args.otf else 1)) > 65535:
-        print("Range is", end - start + 1)
+    if (end - start + (2 if args.otf else 1) + len(glyph_templates)) > 65535:
+        print("Range is (note: 17 spaces are reserved for template glyphs)", end - start + 1)
 
         if args.otf:
             print("Range max is 65534 characters long. Otf includes one by default?")
@@ -77,67 +102,47 @@ def main():
     font.version = '0.1'
     font.copyright = open('FONT_LICENSE', 'r').read()
 
+    # add template glyphs
+    for name, path in glyph_templates.items():
+        char = font.createChar(-1, 't:{}'.format(name))
+        char.importOutlines(gen_svg(path))
+
+    # generate tofu glyphs
     for i in bar(irange(start, end)):
+        char = font.createChar(i)
+        char.addReference("t:base")
+
         codepoint = hex(i)[2:].upper()
         codepoint = codepoint.zfill(6 if len(codepoint) > 4 else 4)
 
-        char = font.createChar(i)
-        char.importOutlines(save_svg(i))
-        char.width = 1000 # shouldnt _have_ to do this, but you never know
-        char.left_side_bearing = MAGIC_PADDING # to ensure zero width characters are not
-        char.right_side_bearing = MAGIC_PADDING
+        for i,c in enumerate(codepoint):
+            # padding + margin * (i % size)
+            if len(codepoint) is 4:
+                x, y = 19 + 32 * (i % 2), 3 + 48 * (i // 2)
+            else:
+                x, y = 3 + 32 * (i % 3), 3 + 48 * (i // 3)
+            char.addReference(
+                't:{}'.format(c),
+                matrix.translate(x * SCALE_FACTOR, -y * SCALE_FACTOR)
+            )
+
+        char.width = GLYPH_SIZE
+        char.left_side_bearing = SCALE_FACTOR
+        char.right_side_bearing = SCALE_FACTOR
 
     save_name = 'tofu_{}_{}.{}'.format(start_str, end_str, 'otf' if args.otf else 'ttf')
     print("Saving as {}".format(save_name))
     font.generate(save_name)
 
 
-char_template = '<path d="{}"/>'
-chars_d = { # these are all paths to make the character associated. I made them
-    "0":"v40h24v-40zm8,8h8v24h-8z",
-    "1":"v8h8v24h-8v8h24v-8h-8v-32z",
-    "2":"v8h16v8h-16v24h24v-8h-16v-8h16v-24z",
-    "3":"v8h16v8h-16v8h16v8h-16v8h24v-40z",
-    "4":"v24h16v16h8v-40h-8v16h-8v-16z",
-    "5":"v24h16v8h-16v8h24v-24h-16v-8h16v-8z",
-    "6":"v40h24v-24h-16v-8h16v-8zm8,24h8v8h-8z",
-    "7":"v8h16v32h8v-40z",
-    "8":"v40h24v-40zm8,8h8v8h-8zm0,16h8v8h-8z",
-    "9":"v24h16v16h8v-40zm8,8h8v8h-8z",
-    "A":"v40h8v-16h8v16h8v-40zm8,8h8v8h-8z",
-    "B":"v40h24v-16h-8v8h-8v-8h8v-8h-8v-8h8v8h8v-16z",
-    "C":"v40h24v-8h-16v-24h16v-8z",
-    "D":"v40h16v-8h8v-24h-8v24h-8v-24h8v-8z",
-    "E":"v40h24v-8h-16v-8h16v-8h-16v-8h16v-8z",
-    "F":"v40h8v-16h16v-8h-16v-8h16v-8z",
-}
+def gen_svg(path):
+    with open(TEMP_FILE, 'w') as f:
+        f.write('<svg viewBox="0 0 {} {}" fill="#000"><path d="{}"/></svg>'.format(
+            GLYPH_TEMPLATE_SIZE, GLYPH_TEMPLATE_SIZE, path
+        ))
 
-def save_svg(char):
-    with open('tofu.svg', 'w') as f:
-        f.write(gen_svg(char))
-    
-    return 'tofu.svg'
+    return TEMP_FILE
 
-
-def gen_svg(char):
-    if not isinstance(char, int):
-        char = ord(char)
-
-    svg = '''<svg viewBox="0 0 94 94" fill="#000"><path d="M1,1v92h92v-92zm1,1h90v90h-90z"/>'''
-    
-    codepoint = hex(char)[2:].upper()
-    codepoint = codepoint.zfill(6 if len(codepoint) > 4 else 4)
-    
-    for i,c in enumerate(codepoint):
-        if len(codepoint) is 4:
-            start = 'M{},{}'.format(19 + (32 * (i % 2)), 3 + 48 * (i // 2))
-        else:
-            start = 'M{},{}'.format(3 + (32 * (i % 3)), 3 + 48 * (i // 3))
-
-        svg += char_template.format(start + chars_d[c]);
-        
-    svg += '</svg>'
-    return svg
 
 if __name__ == "__main__":
     main()
