@@ -13,8 +13,6 @@ def irange(start, end=None):
         return range(start, end+1)
 
 def main():
-    MAGIC_PADDING = 1/94 * 1000
-
     parser = argparse.ArgumentParser(description='Generate Tofu font.')
 
     parser.add_argument('start', metavar='Start', type=str, nargs='?',
@@ -28,8 +26,26 @@ def main():
 
     parser.add_argument('-t', '--ttf', action='store_true',
                     help='output to an ttf file rather than otf')
+            
+    parser.add_argument('--release', action='store_true',
+                    help='generate release fonts for plane 0 and 1')
 
     args = parser.parse_args()
+
+
+    # release overrides everything because why not
+    if args.release:
+        print("Generating release fonts")
+        
+        print("Generating Plane 0")
+        generate_font(irange(0, 65533), 65534,
+            'tofu_plane_0.otf', fontname='TofuPlane0', fullname='Tofu Plane 0')
+        
+        print("Generating Plane 1")
+        generate_font(irange(65536, 65536 + 65533), 65534,
+            'tofu_plane_1.otf', fontname='TofuPlane1', fullname='Tofu Plane 1')
+        
+        return
 
     if args.file and (args.start or args.end):
         print('Only pass a file or a range')
@@ -93,25 +109,34 @@ def main():
         char_range = irange(start, end)
         print('Generating Tofu for unicode characters between U+{} and U+{}'.format(start_str, end_str))
 
-    # return
+    try:
+        fullname = 'Tofu {} - {}'.format(start_str, end_str)
+    except:
+        fullname = 'Tofu'
+
+    try:
+        save_name = 'tofu_{}_{}.{}'.format(start_str, end_str, 'ttf' if args.ttf else 'otf')
+    except:
+        save_name = 'tofu.{}'.format('ttf' if args.ttf else 'otf')
+
+    generate_font(char_range, char_range_len, save_name, fullname=fullname)
+
+
+def generate_font(glyphs, glyphs_len, save_name, fontname='Tofu', fullname='Tofu'):
+    MAGIC_PADDING = 1/94 * 1000
 
     font = fontforge.font() # create a new font
     font.familyname = 'Tofu'
-    font.fontname = 'Tofu'
-    
-    try:
-        font.fullname = 'Tofu {} - {}'.format(start_str, end_str)
-    except:
-        font.fullname = 'Tofu'
-    
+    font.fontname = fontname
+    font.fullname = fullname
     font.comment = 'The complete opposite of a font'
-    font.version = '0.1'
+    font.version = '0.2'
     font.copyright = open('FONT_LICENSE', 'r').read()
 
     progressbar.streams.wrap_stderr()
 
-    with progressbar.ProgressBar(redirect_stdout=True, max_value=char_range_len) as bar:
-        for i,c in enumerate(char_range):
+    with progressbar.ProgressBar(redirect_stdout=True, max_value=glyphs_len) as bar:
+        for i,c in enumerate(glyphs):
             bar.update(i)
 
             codepoint = hex(c)[2:].upper()
@@ -125,15 +150,8 @@ def main():
 
     os.remove('tofu.svg')
     
-    try:
-        save_name = 'tofu_{}_{}.{}'.format(start_str, end_str, 'ttf' if args.ttf else 'otf')
-    except:
-        save_name = 'tofu.{}'.format('ttf' if args.ttf else 'otf')
-    
     print('Saving as {}'.format(save_name))
     font.generate(save_name)
-
-
 
 char_template = '<path d="{}"/>'
 chars_d = { # these are all paths to make the character associated. I made them
