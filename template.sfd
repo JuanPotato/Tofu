@@ -1,0 +1,363 @@
+SplineFontDB: 3.0
+FontName: Tofu
+FullName: Tofu Template
+FamilyName: Tofu
+Weight: Regular
+Copyright: Copyright (c) 2017, Hasan Ibraheem
+Version: 0.1
+UnderlinePosition: -100
+UnderlineWidth: 50
+Ascent: 800
+Descent: 200
+LayerCount: 2
+Layer: 0 0 "Back" 1
+Layer: 1 0 "Fore" 0
+DEI: 91125
+Encoding: ISO8859-1
+NameList: AGL For New Fonts
+AntiAlias: 1
+BeginChars: 65536 65536
+
+StartChar: tbase
+Encoding: 0 -1 0
+Flags: HW
+Fore
+SplineSet
+10 790 m 1
+ 990 790 l 1
+ 990 -190 l 1
+ 10 -190 l 1
+ 10 790 l 1
+20 780 m 1
+ 20 -180 l 1
+ 980 -180 l 1
+ 980 780 l 1
+ 20 780 l 1
+EndSplineSet
+EndChar
+
+StartChar: t0
+Encoding: 1 -1 1
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+85 340 m 1
+ 85 85 l 1
+ 170 85 l 1
+ 170 340 l 1
+ 85 340 l 1
+EndSplineSet
+EndChar
+
+StartChar: t1
+Encoding: 2 -1 2
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 170 425 l 1
+ 170 85 l 1
+ 255 85 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 85 l 1
+ 85 85 l 1
+ 85 340 l 1
+ 0 340 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t2
+Encoding: 3 -1 3
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 170 l 1
+ 85 170 l 1
+ 85 85 l 1
+ 255 85 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 255 l 1
+ 170 255 l 1
+ 170 340 l 1
+ 0 340 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t3
+Encoding: 4 -1 4
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 85 l 1
+ 170 85 l 1
+ 170 170 l 1
+ 0 170 l 1
+ 0 255 l 1
+ 170 255 l 1
+ 170 340 l 1
+ 0 340 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t4
+Encoding: 5 -1 5
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 85 425 l 1
+ 85 255 l 1
+ 170 255 l 1
+ 170 425 l 1
+ 255 425 l 1
+ 255 0 l 1
+ 170 0 l 1
+ 170 170 l 1
+ 0 170 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t5
+Encoding: 6 -1 6
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 340 l 1
+ 85 340 l 1
+ 85 255 l 1
+ 255 255 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 85 l 1
+ 170 85 l 1
+ 170 170 l 1
+ 0 170 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t6
+Encoding: 7 -1 7
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 340 l 1
+ 85 340 l 1
+ 85 255 l 1
+ 255 255 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+85 170 m 1
+ 85 85 l 1
+ 170 85 l 1
+ 170 170 l 1
+ 85 170 l 1
+EndSplineSet
+EndChar
+
+StartChar: t7
+Encoding: 8 -1 8
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 170 0 l 1
+ 170 340 l 1
+ 0 340 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: t8
+Encoding: 9 -1 9
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+85 340 m 1
+ 85 255 l 1
+ 170 255 l 1
+ 170 340 l 1
+ 85 340 l 1
+85 170 m 1
+ 85 85 l 1
+ 170 85 l 1
+ 170 170 l 1
+ 85 170 l 1
+EndSplineSet
+EndChar
+
+StartChar: t9
+Encoding: 10 -1 10
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 170 0 l 1
+ 170 170 l 1
+ 0 170 l 1
+ 0 425 l 1
+85 340 m 1
+ 85 255 l 1
+ 170 255 l 1
+ 170 340 l 1
+ 85 340 l 1
+EndSplineSet
+EndChar
+
+StartChar: tA
+Encoding: 11 -1 11
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 0 l 1
+ 170 0 l 1
+ 170 170 l 1
+ 85 170 l 1
+ 85 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+85 340 m 1
+ 85 255 l 1
+ 170 255 l 1
+ 170 340 l 1
+ 85 340 l 1
+EndSplineSet
+EndChar
+
+StartChar: tB
+Encoding: 12 -1 12
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 170 425 l 1
+ 170 340 l 1
+ 85 340 l 1
+ 85 255 l 1
+ 255 255 l 1
+ 255 340 l 1
+ 170 340 l 1
+ 170 170 l 1
+ 85 170 l 1
+ 85 85 l 1
+ 255 85 l 1
+ 255 170 l 1
+ 170 170 l 1
+ 170 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: tC
+Encoding: 13 -1 13
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 340 l 1
+ 85 340 l 1
+ 85 85 l 1
+ 255 85 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: tD
+Encoding: 14 -1 14
+Flags: HW
+Width: 3
+Fore
+SplineSet
+0 425 m 1
+ 170 425 l 1
+ 170 340 l 1
+ 85 340 l 1
+ 85 85 l 1
+ 170 85 l 1
+ 170 340 l 1
+ 255 340 l 1
+ 255 85 l 1
+ 170 85 l 1
+ 170 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: tE
+Encoding: 15 -1 15
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 340 l 1
+ 85 340 l 1
+ 85 255 l 1
+ 255 255 l 1
+ 255 170 l 1
+ 85 170 l 1
+ 85 85 l 1
+ 255 85 l 1
+ 255 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+
+StartChar: tF
+Encoding: 16 -1 16
+Flags: HW
+Fore
+SplineSet
+0 425 m 1
+ 255 425 l 1
+ 255 340 l 1
+ 85 340 l 1
+ 85 255 l 1
+ 255 255 l 1
+ 255 170 l 1
+ 85 170 l 1
+ 85 0 l 1
+ 0 0 l 1
+ 0 425 l 1
+EndSplineSet
+EndChar
+

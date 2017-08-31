@@ -3,8 +3,13 @@
 import fontforge
 import progressbar
 import argparse
-import os.path
 import os
+import itertools
+import math
+import string
+
+FONT_LICENSE = open('FONT_LICENSE', 'r').read()
+TEMPLATE = open('template.sfd', 'r').read()
 
 def irange(start, end=None):
     if end is None:
@@ -12,193 +17,217 @@ def irange(start, end=None):
     else:
         return range(start, end+1)
 
+def ranges_mergeable(r1, r2):
+    return r1[0] <= (r2[-1]+1) and r2[0] <= (r1[-1]+1)
+
+def range_combine(r1, r2):
+    return irange(min(r1[0], r2[0]), max(r1[-1], r2[-1]))
+
+class range_formatter(string.Formatter):
+    def format_field(self, value, spec):
+        if isinstance(value, range):
+            spec = spec.split(':', 1)
+            value = '{0}{2:04X}{1}{0}{3:04X}'.format(
+                spec[0],
+                ''.join(spec[1:]) or '-', # empty separators are replaced by '-'
+                value[0], value[-1]
+            )
+            spec = ''
+        return super(range_formatter, self).format_field(value, spec)
+
+def merge_ranges(ranges):
+    found_overlap = True
+    while found_overlap:
+        found_overlap = False
+        for i, j in itertools.permutations(range(len(ranges)), 2):
+            if ranges_mergeable(ranges[i], ranges[j]):
+                new_range = range_combine(ranges[i], ranges[j])
+                print(range_formatter().format(
+                    'Notice: merged ranges {} and {} to {}',
+                    ranges[i], ranges[j], new_range
+                ))
+                ranges[i] = new_range
+                del ranges[j]
+                found_overlap = True
+                break
+    return ranges
+
+def parse_hex_range(s):
+    ret = s.split('-')
+    if len(ret) > 2:
+        raise argparse.ArgumentTypeError('More than two hyphen separated values provided')
+
+    start = None
+    end = None
+    try:
+        start = int(ret[0], 16)
+        end = int(ret[-1], 16)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            'Failed to read {} value for range "{}"'.format('start' if start == None else 'end', s)
+        )
+
+    if start > 0xFFFFFF or end > 0xFFFFFF:
+        raise argparse.ArgumentTypeError('Range {} is out of bounds'.format(s))
+
+    if len(ret) == 2 and start == end:
+        print('Warning: range "{}" has same start and end value ({})'.format(s, start))
+
+    if start > end:
+        start, end = end, start
+        print('Warning: range "{}" has been specified in reverse.'.format(s))
+
+    return irange(start, end)
+
+
+
+def format_codepoint(codepoint):
+    hex_str = '{:X}'.format(codepoint)
+    return hex_str.zfill(6 if len(hex_str) > 4 else 4)
+
+def align_point(i, count, item_size, spacing, total_size, reverse=False):
+    if reverse:
+        i = count - i - 1
+    # remaining_space / 2 + current_item * size_of_one_item
+    # remaining_space = total_size - space_taken_by_all_items
+    return (total_size - (count * (item_size + spacing) - spacing)) / 2 + i * (item_size + spacing)
+
+class font_builder(object):
+    def __init__(self, start):
+        self.start = start
+        self.id_font = 17
+        self.data = [TEMPLATE]
+        self.needs_save = False
+        self.last_codepoint = None
+
+    def save(self):
+        start_str = format_codepoint(self.start)
+        end_str = format_codepoint(self.last_codepoint)
+        base_name = 'tofu_{}_{}'.format(start_str, end_str)
+        save_name_tmp = '{}.sfd'.format(base_name)
+        with open(save_name_tmp, 'w') as file:
+            file.write('\n'.join(self.data))
+
+        font = fontforge.open(save_name_tmp)
+        os.remove(save_name_tmp)
+        font.familyname = 'Tofu'
+        font.fontname = 'Tofu'
+        font.fullname = 'Tofu {} - {}'.format(start_str, end_str)
+        font.comment = 'The complete opposite of a font'
+        font.version = '0.2'
+        font.copyright = FONT_LICENSE
+
+        self.needs_save = False
+        return font
+
+    def add_char(self, codepoint):
+        hex_str = format_codepoint(codepoint)
+
+        x_count = len(hex_str) // 2
+        y_count = len(hex_str) // x_count
+
+        # todo: figure out if trowing away translate matricies, making a template for
+        #       each of the 4 positions for each of the 16 glyphs actually saves space      
+        #       (testing shows that not using any matrix can save ~8 bytes per character)
+        references = ['Refer: 0 -1 N 1 0 0 1 0 0 2']
+        for i,c in enumerate(hex_str):
+            references.append(
+                'Refer: {id_glyph} -1 N 1 0 0 1 {x} {y} 2'.format(
+                    id_glyph=int(c, 16) + 1,
+                    x=align_point(i % x_count, x_count, 255, 85, 1000),
+                    y=align_point(i // x_count, y_count, 425, 90, 1000, True) - 200
+                )
+            )
+
+        self.data.append((
+                'StartChar: uni{codepoint}\n'
+                'Encoding: {id_font} {id_uni} {id_glyph}\n'
+                'Width: 1000\n'
+                'Flags: HW\n'
+                'LayerCount: 2\n'
+                'Fore\n'
+                '{references}\n'
+                'EndChar\n'
+            ).format(
+                codepoint=hex_str,
+                id_font=self.id_font,
+                id_uni=codepoint,
+                id_glyph=self.id_font,
+                references='\n'.join(references),
+            )
+        )
+
+        self.id_font += 1
+        self.last_codepoint = codepoint
+        self.needs_save = True
+
+
 def main():
     parser = argparse.ArgumentParser(description='Generate Tofu font.')
 
-    parser.add_argument('start', metavar='Start', type=str, nargs='?',
-                    help='hex code for beginning char. Ex. 0000 or 1000')
+    parser.add_argument('-s', '--split', default=8192, type=int, nargs='?',
+                    help='how many characters to add to a font before creating a new one')
 
-    parser.add_argument('end', metavar='End', type=str, nargs='?',
-                    help='hex code for ending char. Ex. 0FFF or FFFF')
+    parser.add_argument('ranges', metavar='range', type=parse_hex_range, nargs='*',
+                    help='hex ranges for chars to generate (inclusive) Ex. 0000-1000 1F00-2F00')
 
-    parser.add_argument('--file', metavar='File', type=str, nargs=1,
-                    help='input for a file containing a list of hexcodes to be generated seperated by newlines')
-
-    parser.add_argument('-t', '--ttf', action='store_true',
-                    help='output to an ttf file rather than otf')
-            
     parser.add_argument('--release', action='store_true',
                     help='generate release fonts for plane 0 and 1')
 
     args = parser.parse_args()
 
+    if args.release or len(args.ranges) <= 0:
+        print('Generating release fonts (plane 0 and 1)')
+        args.ranges = [irange(0, 0x1FFFF)]
+        args.split = 8192
 
-    # release overrides everything because why not
-    if args.release:
-        print("Generating release fonts")
-        
-        print("Generating Plane 0")
-        generate_font(irange(0, 65533), 65534,
-            'tofu_plane_0.otf', fontname='TofuPlane0', fullname='Tofu Plane 0')
-        
-        print("Generating Plane 1")
-        generate_font(irange(65536, 65536 + 65533), 65534,
-            'tofu_plane_1.otf', fontname='TofuPlane1', fullname='Tofu Plane 1')
-        
-        return
+    if args.split <= 1024:
+        args.split = parser.get_default('split')
+        print('Warning: Specified split value too small, it has been reverted to the default ({})'.format(args.split))
 
-    if args.file and (args.start or args.end):
-        print('Only pass a file or a range')
-        exit(2)
-    
-    if not any([args.file, args.start, args.end]):
-        parser.print_help()
-        exit(2)
+    ranges = merge_ranges(args.ranges)
+    save_name = 'Tofu_{}.ttc'.format('_'.join([range_formatter().format('{::_}', r) for r in ranges]))
+    char_count = sum([len(r) for r in ranges])
+    font_count = math.ceil(char_count / args.split)
 
-    if sum(1 if a else 0 for a in [args.start, args.end]) is 1:
-        print('Please include both a start and end')
-        exit(2)
-
-    if args.file:
-        if not os.path.isfile(args.file[0]):
-            print('`{}` is not a file'.format(args.file[0]))
-            exit(2)
-
-        chars = open(args.file[0], 'r').read().split()
-
-        char_range_len = len(chars)
-        char_range = map(lambda x: int(x, 16), chars)
-    else:
-        start_str = args.start.upper()
-        end_str = args.end.upper()
-
-        if len(start_str) > 5 or len(start_str) < 4:
-            print('Start argument must be 4 or 5 characters long. Ex. 0000 or 10000.')
-            exit(2)
-
-        if len(end_str) > 5 or len(end_str) < 4:
-            print('End argument must be 4 or 5 characters long. Ex. 0000 or 10000.')
-            exit(2)
-
-        try:
-            start = int(start_str, 16)
-        except ValueError:
-            print('Start argument must only contain hexadecimal characters.')
-            exit(2)
-
-        try:
-            end = int(end_str, 16)
-        except ValueError:
-            print('End argument must only contain hexadecimal characters.')
-            exit(2)
-
-        if start >= end:
-            print('Start must be less than end')
-            exit(2)
-
-        if (end - start + (2 if args.ttf else 1)) > 65535:
-            print('Range is', end - start + 1)
-
-            if args.ttf:
-                print('Range max is 65534 characters long. Otf includes one by default?')
-            else:
-                print('Range max is 65535 characters long.')
-            exit(2)
-
-        char_range_len = end - start + 1
-        char_range = irange(start, end)
-        print('Generating Tofu for unicode characters between U+{} and U+{}'.format(start_str, end_str))
-
-    try:
-        fullname = 'Tofu {} - {}'.format(start_str, end_str)
-    except:
-        fullname = 'Tofu'
-
-    try:
-        save_name = 'tofu_{}_{}.{}'.format(start_str, end_str, 'ttf' if args.ttf else 'otf')
-    except:
-        save_name = 'tofu.{}'.format('ttf' if args.ttf else 'otf')
-
-    generate_font(char_range, char_range_len, save_name, fullname=fullname)
+    print('Generating Tofu for unicode characters between {} ({} chars, {} font(s))'.format(
+        ', '.join([range_formatter().format('{:U+}', r) for r in ranges]), char_count, font_count
+    ))
 
 
-def generate_font(glyphs, glyphs_len, save_name, fontname='Tofu', fullname='Tofu'):
-    MAGIC_PADDING = 1/94 * 1000
-
-    font = fontforge.font() # create a new font
-    font.familyname = 'Tofu'
-    font.fontname = fontname
-    font.fullname = fullname
-    font.comment = 'The complete opposite of a font'
-    font.version = '0.2'
-    font.copyright = open('FONT_LICENSE', 'r').read()
-
+    # return
     progressbar.streams.wrap_stderr()
+    bar = progressbar.ProgressBar(max_value=char_count)
 
-    with progressbar.ProgressBar(redirect_stdout=True, max_value=glyphs_len) as bar:
-        for i,c in enumerate(glyphs):
-            bar.update(i)
-
-            codepoint = hex(c)[2:].upper()
-            codepoint = codepoint.zfill(6 if len(codepoint) > 4 else 4)
-
-            char = font.createChar(c)
-            char.importOutlines(save_svg(c))
-            char.width = 1000 # shouldnt _have_ to do this, but you never know
-            char.left_side_bearing = MAGIC_PADDING # to ensure zero width characters are not
-            char.right_side_bearing = MAGIC_PADDING
-
-    os.remove('tofu.svg')
-    
-    print('Saving as {}'.format(save_name))
-    font.generate(save_name)
-
-char_template = '<path d="{}"/>'
-chars_d = { # these are all paths to make the character associated. I made them
-    '0':'v40h24v-40zm8,8h8v24h-8z',
-    '1':'v8h8v24h-8v8h24v-8h-8v-32z',
-    '2':'v8h16v8h-16v24h24v-8h-16v-8h16v-24z',
-    '3':'v8h16v8h-16v8h16v8h-16v8h24v-40z',
-    '4':'v24h16v16h8v-40h-8v16h-8v-16z',
-    '5':'v24h16v8h-16v8h24v-24h-16v-8h16v-8z',
-    '6':'v40h24v-24h-16v-8h16v-8zm8,24h8v8h-8z',
-    '7':'v8h16v32h8v-40z',
-    '8':'v40h24v-40zm8,8h8v8h-8zm0,16h8v8h-8z',
-    '9':'v24h16v16h8v-40zm8,8h8v8h-8z',
-    'A':'v40h8v-16h8v16h8v-40zm8,8h8v8h-8z',
-    'B':'v40h24v-16h-8v8h-8v-8h8v-8h-8v-8h8v8h8v-16z',
-    'C':'v40h24v-8h-16v-24h16v-8z',
-    'D':'v40h16v-8h8v-24h-8v24h-8v-24h8v-8z',
-    'E':'v40h24v-8h-16v-8h16v-8h-16v-8h16v-8z',
-    'F':'v40h8v-16h16v-8h-16v-8h16v-8z',
-}
-
-def save_svg(char):
-    with open('tofu.svg', 'w') as f:
-        f.write(gen_svg(char))
-    
-    return 'tofu.svg'
-
-
-def gen_svg(char):
-    if not isinstance(char, int):
-        char = ord(char)
-
-    svg = '''<svg viewBox='0 0 94 94' fill='#000'><path d='M1,1v92h92v-92zm1,1h90v90h-90z'/>'''
-    
-    codepoint = hex(char)[2:].upper()
-    codepoint = codepoint.zfill(6 if len(codepoint) > 4 else 4)
-    
-    for i,c in enumerate(codepoint):
-        if len(codepoint) is 4:
-            start = 'M{},{}'.format(19 + (32 * (i % 2)), 3 + 48 * (i // 2))
-        else:
-            start = 'M{},{}'.format(3 + (32 * (i % 3)), 3 + 48 * (i // 3))
-
-        svg += char_template.format(start + chars_d[c]);
+    i = 0
+    fonts = []
+    font = None
+    for codepoint in itertools.chain.from_iterable(ranges):
+        if i % args.split == 0:
+            if font:
+                fonts.append(font.save())
+            font = font_builder(codepoint)
+        font.add_char(codepoint)
         
-    svg += '</svg>'
-    return svg
+        i += 1
+        bar.update(i)
+
+    if font.needs_save:
+        fonts.append(font.save())
+
+    bar.finish()
+
+    print('saving as {}'.format(save_name), flush=True)
+    try:
+        fonts[0].generateTtc(save_name, fonts[1:], layer=1,
+            flags=('short-post',), ttcflags=('merge',)
+        )
+    except OSError:
+        print('Error saving, filename is probably too long, saving as tofu.ttc', flush=True)
+        fonts[0].generateTtc('tofu.ttc', fonts[1:], layer=1,
+            flags=('short-post',), ttcflags=('merge',)
+        )
+
 
 if __name__ == '__main__':
     main()
